@@ -38,5 +38,8 @@
     "exec": "node --loader ts-node/esm src/main.ts",
     "delay": 500
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": ">=18 <19"
+  }
 }
