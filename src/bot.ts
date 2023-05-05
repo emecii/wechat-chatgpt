@@ -4,6 +4,7 @@ import { Message } from "wechaty";
 import {FileBox} from "file-box";
 import {chatgpt, dalle, whisper} from "./openai.js";
 import DBUtils from "./data.js";
+import { regexpEncode } from "./utils.js";
 enum MessageType {
   Unknown = 0,
   Attachment = 1, // Attach(6),
@@ -40,13 +41,13 @@ export class ChatGPTBot {
     this.botName = botName;
   }
   get chatGroupTriggerRegEx(): RegExp {
-    return new RegExp(`^@${this.botName}\\s`);
+    return new RegExp(`^@${regexpEncode(this.botName)}\\s`);
   }
   get chatPrivateTriggerRule(): RegExp | undefined {
     const { chatPrivateTriggerKeyword, chatTriggerRule } = this;
     let regEx = chatTriggerRule
     if (!regEx && chatPrivateTriggerKeyword) {
-      regEx = new RegExp(chatPrivateTriggerKeyword)
+      regEx = new RegExp(regexpEncode(chatPrivateTriggerKeyword))
     }
     return regEx
   }
@@ -60,7 +61,7 @@ export class ChatGPTBot {
           "# 显示帮助信息\n" +
           "/cmd prompt <PROMPT>\n" +
           "# 设置当前会话的 prompt \n" +
-          "/cmd img <PROMPT>\n" +
+          "/img <PROMPT>\n" +
           "# 根据 prompt 生成图片\n" +
           "/cmd clear\n" +
           "# 清除自上次启动以来的所有会话\n" +
@@ -116,9 +117,9 @@ export class ChatGPTBot {
     if (item.length > 1) {
       text = item[item.length - 1];
     }
-    
+
     const { chatTriggerRule, chatPrivateTriggerRule } = this;
-    
+
     if (privateChat && chatPrivateTriggerRule) {
       text = text.replace(chatPrivateTriggerRule, "")
     } else if (!privateChat) {
@@ -130,8 +131,11 @@ export class ChatGPTBot {
   }
   async getGPTMessage(talkerName: string,text: string): Promise<string> {
     let gptMessage = await chatgpt(talkerName,text);
-    DBUtils.addAssistantMessage(talkerName,gptMessage);
-    return gptMessage;
+    if (gptMessage !=="") {
+      DBUtils.addAssistantMessage(talkerName,gptMessage);
+      return gptMessage;
+    }
+    return "Sorry, please try again later. 😔";
   }
   // Check if the message returned by chatgpt contains masked words]
   checkChatGPTBlockWords(message: string): boolean {
