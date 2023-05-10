@@ -12,6 +12,12 @@ export interface IConfig {
   chatPrivateTriggerKeyword: string;
 }
 export interface User {
-  username: string,
-  chatMessage: Array<ChatCompletionRequestMessage>,
+  user_id: string;
+  user_name: string;
+  wechat_id?: string;
+  wechat_name?: string;
+  current_model_id?: string;
+  email?: string;
+  phone?: string;
+  gender?: string;
 }
